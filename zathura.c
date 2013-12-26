@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <math.h>
+#include <X11/Xatom.h>
+#include <gdk/gdk.h>
 
 #include <girara/datastructures.h>
 #include <girara/utils.h>
@@ -55,6 +57,9 @@ static gboolean document_info_open(gpointer data);
 static void zathura_jumplist_reset_current(zathura_t* zathura);
 static void zathura_jumplist_append_jump(zathura_t* zathura);
 static void zathura_jumplist_save(zathura_t* zathura);
+static Display *dpy;
+static Window win;
+static Atom atom_filepath = NULL;
 
 #ifdef G_OS_UNIX
 static gboolean zathura_signal_sigterm(gpointer data);
@@ -99,6 +104,21 @@ error_out:
   return NULL;
 }
 
+static void
+set_prop(Atom a, const char *str) {
+  XSync(dpy, False);
+  XChangeProperty(
+    dpy,
+    win,
+    a,
+    XA_STRING,
+    8,
+    PropModeReplace, (unsigned char*)str,
+    strlen(str)+1
+  );
+}
+
+
 bool
 zathura_init(zathura_t* zathura)
 {
@@ -126,6 +146,11 @@ zathura_init(zathura_t* zathura)
   if (girara_session_init(zathura->ui.session, "zathura") == false) {
     goto error_free;
   }
+
+  GdkDisplay* gdpy = gdk_display_get_default();
+  dpy = gdk_x11_display_get_xdisplay(gdpy);
+  atom_filepath = XInternAtom(dpy, "_ZATHURA_FILEPATH", False);
+  win = GDK_WINDOW_XID(gtk_widget_get_window(zathura->ui.session->gtk.window));
 
   /* girara events */
   zathura->ui.session->events.buffer_changed  = cb_buffer_changed;
@@ -669,6 +694,9 @@ document_open(zathura_t* zathura, const char* path, const char* password,
     girara_statusbar_item_set_text(zathura->ui.session, zathura->ui.statusbar.file, zathura_document_get_basename(document));
   }
 
+  /* xprop */
+  set_prop(atom_filepath, file_path);
+
   /* install file monitor */
   file_uri = g_filename_to_uri(file_path, NULL, NULL);
   if (file_uri == NULL) {
@@ -887,7 +915,6 @@ error_out:
 
   return false;
 }
-
 void
 document_open_idle(zathura_t* zathura, const char* path, const char* password,
                    int page_number, const char* mode)
