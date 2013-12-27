@@ -976,6 +976,26 @@ remove_page_from_table(GtkWidget* page, gpointer permanent)
   gtk_container_remove(GTK_CONTAINER(gtk_widget_get_parent(page)), page);
 }
 
+static void
+store_file_information(zathura_t* zathura, const char* path)
+{
+  zathura_fileinfo_t file_info = { 0, 0, 1, 0, 1, 1, 0, 0 };
+  file_info.current_page = zathura_document_get_current_page_number(zathura->document);
+  file_info.page_offset  = zathura_document_get_page_offset(zathura->document);
+  file_info.scale        = zathura_document_get_scale(zathura->document);
+  file_info.rotation     = zathura_document_get_rotation(zathura->document);
+
+  girara_setting_get(zathura->ui.session, "pages-per-row", &(file_info.pages_per_row));
+  girara_setting_get(zathura->ui.session, "first-page-column", &(file_info.first_page_column));
+
+  /* get position */
+  file_info.position_x = zathura_document_get_position_x(zathura->document);
+  file_info.position_y = zathura_document_get_position_y(zathura->document);
+
+  /* save file info */
+  zathura_db_set_fileinfo(zathura->database, path, &file_info);
+}
+
 bool
 document_close(zathura_t* zathura, bool keep_monitor)
 {
@@ -1016,24 +1036,10 @@ document_close(zathura_t* zathura, bool keep_monitor)
     zathura->global.marks = NULL;
   }
 
-  /* store file information */
   const char* path = zathura_document_get_path(zathura->document);
 
-  zathura_fileinfo_t file_info = { 0, 0, 1, 0, 1, 1, 0, 0 };
-  file_info.current_page = zathura_document_get_current_page_number(zathura->document);
-  file_info.page_offset  = zathura_document_get_page_offset(zathura->document);
-  file_info.scale        = zathura_document_get_scale(zathura->document);
-  file_info.rotation     = zathura_document_get_rotation(zathura->document);
-
-  girara_setting_get(zathura->ui.session, "pages-per-row", &(file_info.pages_per_row));
-  girara_setting_get(zathura->ui.session, "first-page-column", &(file_info.first_page_column));
-
-  /* get position */
-  file_info.position_x = zathura_document_get_position_x(zathura->document);
-  file_info.position_y = zathura_document_get_position_y(zathura->document);
-
-  /* save file info */
-  zathura_db_set_fileinfo(zathura->database, path, &file_info);
+  /* store file information */
+  store_file_information(zathura, path);
 
   /* save jumplist */
   zathura_db_save_jumplist(zathura->database, path, zathura->jumplist.list);
