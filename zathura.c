@@ -85,16 +85,17 @@ error_out:
 }
 
 static void
-set_prop(Atom a, const char *str) {
+set_prop(Atom atom, const char *val) {
   XSync(dpy, False);
   XChangeProperty(
     dpy,
     win,
-    a,
+    atom,
     XA_STRING, 
     8, 
-    PropModeReplace, (unsigned char*)str,
-    strlen(str)+1
+    PropModeReplace, 
+    (unsigned char*)val,
+    strlen(val)+1
   );
 }
 
@@ -902,9 +903,11 @@ remove_page_from_table(GtkWidget* page, gpointer permanent)
   gtk_container_remove(GTK_CONTAINER(gtk_widget_get_parent(page)), page);
 }
 
-static void
-store_file_information(zathura_t* zathura, const char* path)
+void
+store_file_information(zathura_t* zathura)
 {
+  const char* path = zathura_document_get_path(zathura->document);
+
   zathura_fileinfo_t file_info = { 0, 0, 1, 0, 1, 1, 0, 0 };
   file_info.current_page = zathura_document_get_current_page_number(zathura->document);
   file_info.page_offset  = zathura_document_get_page_offset(zathura->document);
@@ -962,10 +965,11 @@ document_close(zathura_t* zathura, bool keep_monitor)
     zathura->global.marks = NULL;
   }
 
-  const char* path = zathura_document_get_path(zathura->document);
 
   /* store file information */
-  store_file_information(zathura, path);
+  store_file_information(zathura);
+  
+  const char* path = zathura_document_get_path(zathura->document);
 
   /* save jumplist */
   zathura_db_save_jumplist(zathura->database, path, zathura->jumplist.list);

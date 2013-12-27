@@ -108,6 +108,7 @@ cb_view_hadjustment_value_changed(GtkAdjustment* adjustment, gpointer data)
   zathura_document_set_current_page_number(zathura->document, page_id);
 
   statusbar_page_number_update(zathura);
+  store_file_information(zathura);
 }
 
 void
@@ -134,6 +135,7 @@ cb_view_vadjustment_value_changed(GtkAdjustment* adjustment, gpointer data)
   zathura_document_set_current_page_number(zathura->document, page_id);
 
   statusbar_page_number_update(zathura);
+  store_file_information(zathura);
 }
 
 void
