@@ -432,4 +432,6 @@ void zathura_jumplist_trim(zathura_t* zathura);
  */
 bool zathura_jumplist_load(zathura_t* zathura, const char* file);
 
+void store_file_information(zathura_t* zathura);
+
 #endif // ZATHURA_H
