@@ -164,6 +164,7 @@ cb_view_hadjustment_changed(GtkAdjustment* adjustment, gpointer data)
   /* reset the adjustment, in case bounds have changed */
   double ratio = zathura_document_get_position_x(zathura->document);
   zathura_adjustment_set_value_from_ratio(adjustment, ratio);
+  store_file_information(zathura);
 }
 
 void
@@ -192,6 +193,7 @@ cb_view_vadjustment_changed(GtkAdjustment* adjustment, gpointer data)
   /* reset the adjustment, in case bounds have changed */
   double ratio = zathura_document_get_position_y(zathura->document);
   zathura_adjustment_set_value_from_ratio(adjustment, ratio);
+  store_file_information(zathura);
 }
 
 void
@@ -244,6 +246,7 @@ cb_page_layout_value_changed(girara_session_t* session, const char* UNUSED(name)
 
   page_widget_set_mode(zathura, page_padding, pages_per_row, first_page_column);
   zathura_document_set_page_layout(zathura->document, page_padding, pages_per_row, first_page_column);
+  store_file_information(zathura);
 }
 
 void
